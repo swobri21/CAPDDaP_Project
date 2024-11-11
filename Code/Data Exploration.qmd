@@ -188,7 +188,7 @@ write.csv(mosquito, here("Data",
 
 # plot trap_attractant against genus-species and sex
 ```{r}
-ggplot(mosquito, aes(x = trap_attractant, colour = genus_species)) +
+ggplot(mosquito, aes(y = trap_attractant, fill = genus_species)) +
   geom_bar() +
   theme_bw() +
   xlab("Trap and Attractant Type") + 
@@ -224,4 +224,5 @@ mosquito |>
   view()
 ```
 look at the mean and sd for males and females collected, there were, on average, more females collected. the mean females is 11.478, sd females is 21.325, mean males is 3.08, sd males is 14.9. i think there is a statisitcal analysis that can be looked at here. 
+
 
