@@ -85,6 +85,7 @@ mosquito$collected_time_day <-
 levels(mosquito$collected_time_day)
 # two levels Afternoon and Morning
 ```
+i'm not sure if i'll end up using these variables but i'll change them to fct in case i do
 
 # change genus and species to fct
 ```{r}
@@ -137,9 +138,9 @@ mosquito <- mosquito |>
 ggplot(mosquito, aes(x = total_collected)) +
   geom_histogram() # histogram of total mosquitoes collected
 ```
-looks like there might be around 350 and 700
+looks like there might be outliers around 350 and 700. but the majority of data is below 25 mosquitoes caught. 
 
-# look at total collected outliers
+# look at total collected outliers above 300
 ```{r}
 mosquito |>
   filter(total_collected >= 300) |>
@@ -153,7 +154,7 @@ ggplot(mosquito, aes(total_collected)) +
   geom_boxplot() +
   theme_bw()
 ```
-looks like there are a good amount of outliers which make this boxplot look weird. im going to calculate the IQR to find the outlier limit
+looks like there are a good amount of outliers which make this boxplot look weird. im going to calculate the IQR to find the outlier limit. it's concerning thaat there are so many outliers. 
 
 # find five number summary of total_collected
 ```{r}
@@ -182,22 +183,45 @@ anything above 16.5 or below -13.5 is considered an outlier. however, there 421 
 # save updated data set as mosquito_new.csv
 ```{r}
 write.csv(mosquito, here("Data",
-                        "mosquito_new.csv"), row.names = FALSE)
+                        "mosquito_new.csv"), row.names = FALSE) # this saves everything i've done in this .qmd to a new data set called mosquito_new.csv
 ```
 
 # plot trap_attractant against genus-species and sex
 ```{r}
 ggplot(mosquito, aes(x = trap_attractant, colour = genus_species)) +
-  geom_bar() # compares trap type with mosquito genus-specie
+  geom_bar() +
+  theme_bw() +
+  xlab("Trap and Attractant Type") + 
+  ylab("Total Number of Mosquitoes Caught") +
+  coord_flip() # compares trap type with mosquito genus-specie
 
 ggplot(mosquito, aes(x = males_collected, y = females_collected, colour = trap_attractant)) +
-  geom_point() # scatterplot of males and females collected sorted by trap_attractant, lots of gravid grap with hay or grass infusion
+  geom_point() + 
+  theme_bw() +
+  xlab("Males Collected") +
+  ylab("Females Collected") # scatterplot of males and females collected sorted by trap_attractant, lots of gravid grap with hay or grass infusion
 ```
+the most amount of mosquitoes caught were from the gravid trap with hay or grass infusion with most mosquito genus being culex. around 750 culex pipiens were caught with the gravid with hay or grass infusion.
 
 # plot mosquito sex and species
 ```{r}
 ggplot(mosquito, aes(x = males_collected, y = females_collected, colour = genus_species)) +
-  geom_point() # lots of culex pipiens restauns mixed
+  geom_point() +
+  theme_bw() +
+  xlab("males collected") +
+  ylab("females collected")
+  # lots of culex pipiens restauns mixed
 ```
+it appears there were probably more females collected but there doesn't look to be as much of a difference as i was expecting. i was expecting much more females collected but there were a lot of males collected too. 
 
+# calculate mean and sd of males and females collected
+```{r}
+mosquito |>
+  summarise(mean_males = mean(males_collected),
+            sd_males = sd(males_collected),
+            mean_females = mean(females_collected),
+            sd_females = sd(females_collected)) |>
+  view()
+```
+look at the mean and sd for males and females collected, there were, on average, more females collected. the mean females is 11.478, sd females is 21.325, mean males is 3.08, sd males is 14.9. i think there is a statisitcal analysis that can be looked at here. 
 
