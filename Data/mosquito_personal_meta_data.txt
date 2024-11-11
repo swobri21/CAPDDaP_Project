@@ -1,0 +1,33 @@
+A.	DC Health. (2019) MosquitoTrapPt [Dataset]. City of Washington, DC. https://opendata.dc.gov/datasets/DCGIS::mosquito-trap-sites/about 
+B.	https://opendata.dc.gov/datasets/DCGIS::mosquito-trap-sites/about 
+C.	This dataset is collected from the DC Health, Health Regulation & Licensing Admin from 2016-2018. The purpose of the collection of this dataset was to monitor and limit mosquito populations during the peak season from April-October. DC Health does this to prevent the spread of West Nile virus and Zika after the outbreak in Latin America because mosquito species in DC can spread Zika, but none have been found with Zika. Mosquito levels in October of 2017 are left out of this dataset because the traps didn’t work so this is something to keep in mind if I choose to analyze this dataset.
+D.	
+OBJECTID: internal feature number
+TRAPTYPE: type of trap to capture adult to mosquitos
+ATTRACTANTUSED: bait used to attract mosquitos
+TRAPID: trap identification 
+LATITUDE: latitude of trap
+LONGITUDE: longitude of trap
+ADDRESS: address of trap
+TOWN: town trap located in
+STATE: state trap located in
+COUNTY: county trap located in
+TRAPSITE: site description of trap
+TRAPSET: date trap was set
+SETTIMEOFDAY: time of day trap was set
+TRAPCOLLECT: date data was collected
+COLLECTTIMEOFDAY: time of day trap was collected
+GENUS: genus of mosquito 
+SPECIES: species of mosquitos
+LIFESTAGE: life stage of mosquito
+EGGSCOLLECTED: eggs collected, yes or no 
+LARVAECOLLECTED: larvae collected, yes or no 
+PUPAECOLLECTED: pupae collected, yes or no
+FEMALESCOLLECTED: number of females collected
+MALESCOLLECTED: number of males collected
+UNKNOWNCOLLECTED: number of unknown collected
+REPORTDATE: date of report
+E.	
+Deleted X, Y, GIS_ID, GLOBALID, CREATOR, CREATED, EDITOR, AND EDITED column. Changed all column labels to lower case letters and separated label titles with underscores and set excel file as read only. Once I get started in R, I will create a new column for total number of mosquitoes collected, total_collected, by combining females_collected and males_collected. I will create another column, species, by combining genus and species. Lastly, I will scale mosquito abundance by time each trap was out for collection by creating a new column, length_trap_days, by determining how many days each trap was out for. This will all be done in R. 
+
+

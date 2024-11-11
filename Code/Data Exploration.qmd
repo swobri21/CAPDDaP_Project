@@ -1,0 +1,203 @@
+---
+title: "Data Exploration"
+author: "S.O'Brien"
+format: html
+---
+
+# set things up
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+library(multcomp)
+```
+
+# import data
+```{r}
+mosquito <- read.csv(here("Data/Mosquito_Trap_Sites_edited.csv"))
+```
+
+# checkout data
+```{r}
+glimpse(mosquito) # looking at each variable in the data set
+summary(mosquito) # looking at the summary statistics of the variables in the data set
+```
+from glimpse, i think i can convert trap_type and attractant_used to fct. i can also combine these variables because it seems that the pairings for each don't change. i can change set_time_day and collected_time_day to fct. i can change genus and species to fct and combine them as well. trap_set, trap_collected, and report_date can be changed to date format and the date and time can be separated. i will also make a new column for males_collected and females_collected combined. from summary, it appears that there might be outliers in females_collected and males_collected so after i analyze those two variables more ill make a decision on what to do about that.
+
+# look at trap_type and attractant_used more
+```{r}
+mosquito |>
+  group_by(trap_type, attractant_used) |>
+  summarise() # this combines and shows all the pairings between trap_type and attractant_used
+```
+looks like ABC Trap is with CO2 and light and CO2 with light. BGS Trap is always with Lure and Gravid Trap changes between Lure, Hay or grass infusion, Lure and grass infusion, Lure with grass infusion, grass infusion and lure , etc. but they're mostly all the same just different wording.
+
+# convery trap_type and attractant_used to fct format
+```{r}
+# change trap_type to fct
+mosquito$trap_type <- 
+  as.factor(mosquito$trap_type)
+levels(mosquito$trap_type)
+
+# change attractant_used to fct
+mosquito$attractant_used <- 
+  as.factor(mosquito$attractant_used)
+levels(mosquito$attractant_used)
+```
+i'm going to cut down on the number of attractant_used levels because a lot of them are the same but different wording
+
+# reduce levels of attractant_used
+```{r}
+# reduce levels of attractant_used
+fix <- which(mosquito$attractant_used == "CO2 and Light")
+mosquito$attractant_used[fix] <- "CO2 with light"
+
+fix2 <- which(mosquito$attractant_used == "grass infusion and Lure")
+mosquito$attractant_used[fix2] <- "Lure and grass infusion"
+
+fix3 <- which(mosquito$attractant_used == "lure and grass infusion")
+mosquito$attractant_used[fix3] <- "Lure and grass infusion"
+
+fix4 <- which(mosquito$attractant_used == "Lure with grass infusion")
+mosquito$attractant_used[fix4] <- "Lure and grass infusion"
+
+mosquito$attractant_used <- factor(mosquito$attractant_used)
+levels(mosquito$attractant_used)
+```
+
+# combine trap_type and attractant_used
+```{r}
+mosquito <- mosquito |>
+   unite("trap_attractant", c(trap_type, attractant_used),
+        sep = ": ") # this combines the trap_type and attractant_used into one column, separated by ": "
+```
+
+# change set_time_day and collected_time_day to fct
+```{r}
+mosquito$set_time_day <- 
+  as.factor(mosquito$set_time_day)
+levels(mosquito$set_time_day)
+# two levels Afternoon and Morning
+
+mosquito$collected_time_day <- 
+  as.factor(mosquito$collected_time_day)
+levels(mosquito$collected_time_day)
+# two levels Afternoon and Morning
+```
+
+# change genus and species to fct
+```{r}
+mosquito$genus <- 
+  as.factor(mosquito$genus)
+levels(mosquito$genus)
+# genus levels are Aedes, Anopheles, Culex, and Psorophora
+
+mosquito$species <- 
+  as.factor(mosquito$species)
+levels(mosquito$species)
+# 11 different species levels 
+```
+
+# combine genus and speceis
+```{r}
+mosquito <- mosquito |>
+   unite("genus_species", c(genus, species),
+        sep = "_") # this combines genus and species into one column, separated by "-"
+```
+
+# change trap_set, trap_collected, and report_date to date format
+```{r}
+mosquito <- mosquito |> 
+  mutate(trap_set = ymd_hms(trap_set))
+
+mosquito <- mosquito |> 
+  mutate(trap_collected = ymd_hms(trap_collected))
+
+mosquito <- mosquito |>
+  mutate(report_date = ymd_hms(report_date))
+  
+# these functions convert trap_set, trap_collected, and report_date to date format with hour, minute, and second as well
+```
+
+# combine males_collected and females_collected as total_collected
+```{r}
+mosquito <- mosquito |>
+  mutate(total_collected = males_collected + females_collected) # this combines the total number of male and female mosquitoes caught
+```
+
+# make column for total time trap was out
+```{r}
+mosquito <- mosquito |>
+  mutate(trap_time_out = trap_set - trap_collected) # this determines how many days each trap was out for 
+```
+
+# look at outliers for total_collected
+```{r}
+ggplot(mosquito, aes(x = total_collected)) +
+  geom_histogram() # histogram of total mosquitoes collected
+```
+looks like there might be around 350 and 700
+
+# look at total collected outliers
+```{r}
+mosquito |>
+  filter(total_collected >= 300) |>
+  view()
+```
+looks like observations for object_id 19, 1384, 1594, and 1614 have 367, 386, 360, and 696 mosquitoes caught respectively. all of them are culex-pipiens. 
+
+# boxplot of total collected
+```{r}
+ggplot(mosquito, aes(total_collected)) +
+  geom_boxplot() +
+  theme_bw()
+```
+looks like there are a good amount of outliers which make this boxplot look weird. im going to calculate the IQR to find the outlier limit
+
+# find five number summary of total_collected
+```{r}
+summary(mosquito)
+```
+for total_collected
+min: 2
+Q1: 3 
+median: 6
+mean: 14.56
+Q3: 14 
+max: 696
+IQR: 14 - 3 = 11
+upper limit: (1.5 x 11) + 14 = 16.5
+lower limit: 3 - (1.5 x 11) = -13.5
+```{r}
+(1.5*11) +14 # = 16.5 as upper limit
+3 - (1.5*11) # = -13.5 as lower limit
+
+mosquito |>
+  filter(total_collected >= 16.5) |>
+  view() # observations with more than 16.5 mosquitoes collected
+```
+anything above 16.5 or below -13.5 is considered an outlier. however, there 421 observations with more than 16.5 total mosquitoes collected which is a pretty sizable amount so i don't feel comfortable cutting all of the outliers. i believe these are natural occurrences in nature so i will not be cuttig any outliers. 
+
+# save updated data set as mosquito_new.csv
+```{r}
+write.csv(mosquito, here("Data",
+                        "mosquito_new.csv"), row.names = FALSE)
+```
+
+# plot trap_attractant against genus-species and sex
+```{r}
+ggplot(mosquito, aes(x = trap_attractant, colour = genus_species)) +
+  geom_bar() # compares trap type with mosquito genus-specie
+
+ggplot(mosquito, aes(x = males_collected, y = females_collected, colour = trap_attractant)) +
+  geom_point() # scatterplot of males and females collected sorted by trap_attractant, lots of gravid grap with hay or grass infusion
+```
+
+# plot mosquito sex and species
+```{r}
+ggplot(mosquito, aes(x = males_collected, y = females_collected, colour = genus_species)) +
+  geom_point() # lots of culex pipiens restauns mixed
+```
+
+
