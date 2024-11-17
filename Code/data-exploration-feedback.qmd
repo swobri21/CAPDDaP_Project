@@ -1,0 +1,15 @@
+---
+title: "data exploration feedback"
+format: html
+editor: visual
+---
+
+## Data Exploration Feedback
+
+1.  This is looking good and thorough so far and you are taking into account feedback from PS2 which is good.
+2.  Line 133 - your mutate gives you negative numbers of days that traps are out, so you might want to add an absolute value to your math so that trap_time_out is in positive days.
+3.  W regard to outliers, the huge number of mosquitoes appears to be from the Korean War Memorial in DC, and given its proximity to the Potomac River and the Reflecting Pool, I think it could be a true value! Yikes!
+4.  As part of your exploration, I'd like to have seen more histograms (perhaps of \# males trapped, \# females trapped). I would also like to see some group_by and summarise combined with plots, for instance group_by genus_species and summarise number trapped etc. and then look at those plots as you get a feel for the data.
+5.  When you observe that there might be outliers, I'd like to see you discuss in the commentary what your decision about them is, based on something scientifically meaningful.
+
+Overall though a good job!
