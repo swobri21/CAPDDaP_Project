@@ -191,9 +191,10 @@ write.csv(mosquito, here("Data",
 ggplot(mosquito, aes(y = trap_attractant, fill = genus_species)) +
   geom_bar() +
   theme_bw() +
-  xlab("Trap and Attractant Type") + 
-  ylab("Total Number of Mosquitoes Caught") +
-  coord_flip() # compares trap type with mosquito genus-specie
+  xlab("Total Number of Mosquitoes Caught") + 
+  ylab("Trap and Attractant Type") +
+  coord_flip()
+  # compares trap type with mosquito genus-specie
 
 ggplot(mosquito, aes(x = males_collected, y = females_collected, colour = trap_attractant)) +
   geom_point() + 

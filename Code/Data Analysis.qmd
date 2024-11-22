@@ -1,0 +1,227 @@
+---
+title: "Data Analysis"
+author: "S.O'Brien"
+format: html
+---
+
+# Set things up:
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+library(multcomp)
+```
+
+### Import data:
+
+```{r}
+mosquito <- read.csv(here("Data/mosquito_new.csv"))
+```
+
+### Checkout data:
+
+```{r}
+glimpse(mosquito) # looking at each variable in the data set
+summary(mosquito) # looking at the summary statistics of the variables in the data set
+```
+
+This all looks good coming off of my data exploration but it doesn't look like trap_type and attractant_used saved as fct so I will convert them. 
+
+### Convert trap_type to fct:
+
+```{r}
+mosquito$trap_type <- 
+  as.factor(mosquito$trap_type)
+levels(mosquito$trap_type)
+```
+
+### Convert attractant_used to fct:
+
+```{r}
+mosquito$attractant_used <- 
+  as.factor(mosquito$attractant_used)
+levels(mosquito$attractant_used)
+```
+
+### Questions to be answered:
+
+A. What is the effect of trap type and attractant on the total mosquitoes collected?
+
+Response: total genus collected (discrete)
+
+Predictor: trap and attractant (categorical)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of each genus caught) is associated with trap and attractant
+
+B. Is the total number of mosquitoes caught different between genus and species?
+
+Predictor: genus and species (categorical)
+
+Response: total mosquitoes caught (discrete)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (total caught) is associated with genus_species
+
+# A. 
+
+What is the effect of trap type and attractant on the diversity of mosquitoes collected?
+
+Response: total genus_species collected (discrete)
+
+Predictor: trap_attractant (categorical)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of each genus caught) is associated with trap and attractant
+
+### Hypotheses:
+
+Null hypothesis: There is no association between trap and attractant used on mosquito genus and species caught.
+
+Alternative hypothesis: There is an association between trap and attractant used on mosquito genus and species caught
+
+### Calculate total of each genus_species caught across trap_attractant:
+
+```{r}
+type_collected <- mosquito |>
+  group_by(genus_species, trap_attractant) |> 
+  summarise(collected = n())
+# this will count the total number of mosquitoes caught based on their genus_species for each trap_attractant
+```
+
+There are 40 different observations for each genus_species and trap_attractant combination. It appears that culex_pipiens with gravid trap: hay or grass infusion are going to have much more mosquitoes caught than any other combination. 
+
+### Plot the data:
+
+```{r}
+ggplot(type_collected, aes(x = trap_attractant, 
+                           y = collected, 
+                           fill = genus_species)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw() 
+# this is a bar chart of the number of mosquitoes caught based on genus_species for each trap_attractant
+# stat = 'identity' tells ggplot not to calculate anything, 'position' = 'dodge' tells ggplot to make side-by-side bar chart
+# chose to do bar charts because type_collected is countable data of the number of mosquitoes caught for each trap
+```
+
+As we can see from the plot, gravid trap: hay or grass infusion has over 700 culex_pipens caught, much more than other other trap and genus_species. From this bar chart, I predict that the diversity of mosquitoes caught is not equally distributed among traps and attractants
+
+# Making a matrix from the type_collected data frame:
+
+```{r}
+# this is a matrix for the diversity of mosquitoes caught for each trap and attractant
+first_mat <- xtabs(collected ~ genus_species + trap_attractant, 
+                   data = type_collected)
+first_mat
+```
+
+The output for this is the same as the type_collected data frame
+
+### Conduct chi-sq test:
+
+```{r}
+chisq.test(first_mat)
+```
+
+For the chi-sq test, we can reject the null hypothesis that there is no association between the diversity of mosquitoes caught from the trap and attractant used. There is a high probability that the pattern of mosquito genus and species collected didn't arise by change and that there is a relationship with the trap and attractant used (X-sq = 352.68, df = 44, p = 2.2x10^-16). However, the fact that there is a warning message saying the Chi-squared approximation may be incorrect is not reassuring so will need to look into this further and discuss with Dr. Barthelmess before I come to any concrete conclusions.
+
+### Final plot:
+
+```{r}
+ggplot(type_collected, aes(x = trap_attractant, 
+                           y = collected, 
+                           fill = genus_species)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  theme_bw() +
+  xlab("Total Mosquitoes Collected") +
+  ylab("Type of Trap and Attractant") +
+  labs(caption = "Number of mosquitoes collected across across genus and species for each trap and attractant.") +
+  theme(plot.caption = element_text(face = "italic", 
+                                    size = 10, 
+                                    hjust = 0)) +
+  coord_flip() +
+  scale_fill_discrete(name = "Genus and Species")
+```
+
+This plot shows the total number of mosquitoes caught for each trap and attractant combination based on their genus and species. As we can see, there were more culex_pipiens caught and the gravid trap: hay or grass infusion had the most caught. I think there are also some confounding variables with this so for future analyses I should consider looking more into that or cutting down on the amount of groups I'm comparing.
+
+# B.
+
+### Question:
+
+Is the number of total mosquitoes caught different between genus and species?
+
+Predictor: genus and species (categorical)
+
+Response: number of mosquitoes caught (discrete)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of caught) is associated with genus_species
+
+### Hypotheses:
+
+Null hypothesis: there is no association between the total number of  mosquitoes caught based on genus_species.
+
+Alternative hypothesis: there is an association between the total number of mosquitoes caught based on genus_species.
+
+### Calculate total mosquitoes caught across genus_species:
+
+```{r}
+total_collected <- mosquito |>
+  group_by(genus_species) |> 
+  summarise(total_caught = sum(total_collected))
+# this will count the total number of male and female mosquitoes caught based on their genus_species for each trap_attractant
+```
+
+This creates a dataframe for the total number of mosquitoes caught based on gneus and species. Just looking at this, there are 22509 culex pipiens caught which is a lot more than any other genus_species.
+
+### Plot the data:
+
+```{r}
+ggplot(total_collected, aes(x = genus_species, 
+                            y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw()
+```
+
+Similar to the previous analysis, culex_pipiens has much larger amount of total mosquitoes caught so I believe there will be an association between total caught with genus_species.
+
+### Making matrix for total mosquitoes caught based on genus_species:
+
+```{r}
+# this is a matrix for the total number of mosquitoes caught for each genus and species
+second_mat <- xtabs(total_caught ~ genus_species, 
+                   data = total_collected)
+second_mat
+```
+
+This is the same output as the previous data frame 
+
+### Conduct chi-sq test:
+
+```{r}
+chisq.test(second_mat)
+```
+
+Based on the chi-sq test, we can reject the null hypothesis that there is no association between the genus and species of mosquitoes and the total number of mosquitoes caught (X-sq = 183583, df = 11, p = 2.2x10-16). The X-sq values is extremely large so the probability that this arose by chance is very low. Like we saw in the initial data frame, there were 22509 culex pipiens caught which is probably why the X-sq value is so large. 
+
+### Final plot:
+
+```{r}
+ggplot(total_collected, aes(x = genus_species, 
+                           y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  theme_bw() +
+  xlab("Genus and Species of Mosquito") +
+  ylab("Total Number of Mosquitoes Collected") +
+  labs(caption = "Number of mosquitoes collected across across genus and species.") +
+  theme(plot.caption = element_text(face = "italic", 
+                                    size = 10, 
+                                    hjust = 0)) +
+  coord_flip() 
+```
+
+From this plot, like in the previous one, culex pipiens stands out as having much more mosquitoes caught. Clearly, this mosquito is very common in Washington DC which is problematic because they carry West Nile virus, however, they don't carry Zika. 
