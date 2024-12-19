@@ -1,0 +1,323 @@
+---
+title: "Final"
+author: "S.O'Brien"
+format: html
+---
+
+# Introduction
+
+This data frame, obtained from DC Health, contains data from mosquito traps throughout Washington, DC from 2016-2018. The purpose of this collection was to monitor mosquito populations during peak season from Arpil-October in order to limit the abundance of disease carrying mosquitoes. The purpose of this study is to prevent the spread of West Nile virus and Zika after the outbreak in Latin America because mosquito species in DC can spread Zika virus. However, none have been found with Zika. Something to note, mosquito levels in October of 2017 are left out of this data frame because the traps didn’t work. The data set is quite large, there are 25 variables and 2023 observations. During the data preparation, I deleted X, Y, GIS_ID, GLOBALID, CREATOR, CREATED, EDITOR, AND EDITED column. I changed all column labels to lower case letters and separated label titles with underscores and set excel file as read only. I combined Trap_type and Attractant_type to trap_attractant and genus and species to genus_species. I made total_collected by combining females_collected and males_collected.
+
+# Analysis
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+library(multcomp)
+library(chisq.posthoc.test)
+
+mosquito <- read.csv(here("Data/mosquito_new.csv"))
+
+mosquito$trap_attractant <- 
+  as.factor(mosquito$trap_attractant)
+levels(mosquito$trap_attractant)
+```
+
+## Part I.
+
+What is the effect of trap type and attractant on the diversity of mosquitoes collected?
+
+Response: total genus_species collected (discrete)
+
+Predictor: trap_attractant (categorical)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of each genus caught) is associated with trap and attractant
+
+### Hypotheses:
+
+Null hypothesis: There is no association between trap and attractant used on mosquito genus and species caught.
+
+Alternative hypothesis: There is an association between trap and attractant used on mosquito genus and species caught. Traps are designed to attract certain types of mosquitoes. For example, BGS traps are best to find *Ae. aegypti*, *Ae. albopictus,* and *Culex.* Gravid traps are best used to find *Culex pipiens.* ABC light traps have been best shown to catch *Anopheles,* *Culex* and *Aedes*. (CDC, 2024).
+
+### Calculate total of each genus_species caught across trap_attractant:
+
+```{r}
+type_collected <- mosquito |>
+  group_by(genus_species, trap_attractant) |> 
+  summarise(collected = n())
+```
+
+There are 40 different observations for each genus_species and trap_attractant combination. It appears that culex_pipiens with gravid trap: hay or grass infusion are going to have much more mosquitoes caught than any other combination.
+
+### Plot the data:
+
+```{r}
+ggplot(type_collected, aes(x = trap_attractant, 
+                           y = collected, 
+                           fill = genus_species)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw() 
+```
+
+As we can see from the plot, gravid trap: hay or grass infusion has over 700 culex_pipens caught, much more than other other trap and genus_species. From this bar chart, I predict that the diversity of mosquitoes caught is not equally distributed among traps and attractants
+
+### Matrix from the type_collected data frame:
+
+```{r}
+first_mat <- xtabs(collected ~ genus_species + trap_attractant, 
+                   data = type_collected)
+first_mat
+```
+
+The output for this is the same as the type_collected data frame
+
+### Chi-sq test:
+
+```{r}
+chisq.test(first_mat)
+```
+
+For the chi-sq test, we can reject the null hypothesis that there is no association between the diversity of mosquitoes caught from the trap and attractant used. There is a high probability that the pattern of mosquito genus and species collected didn't arise by change and that there is a relationship with the trap and attractant used (X-sq = 352.68, df = 44, p = 2.2x10\^-16). The warning messages saying the Chi-squared approximation may be incorrect means that there are a lot of variables with less than 5 observations. I decided to keep these because combining them into groups was not possible. They all were different genus species and were observed using different traps so there was no way to combine them. The results make sense and support our alternative hypothesis because the mosquito traps were designed to catch specific groups of mosquitoes. For example, *Culex pipiens* there were overwhelmingly caught by Gravid traps. The Gravid trap seems to have caught the most amount of mosquitoes besides *Culex pipiens*. However, I would've expected the ABC trap to have caught more variety of mosquitoes because they were designed to catch the most variety.
+
+### Post-hoc test:
+
+```{r}
+chisq.posthoc.test(first_mat) |>
+  view()
+```
+
+The output from the post-hoc test for the chi-squared test explains whether the number of mosquito genus species collected for each trap and attractant combination is significantly different or not from all other mosquito genus species. The residual identifies the extent of how much more or fewer mosquitoes were caught than expected.
+
+### Final plot:
+
+```{r}
+ggplot(type_collected, aes(x = trap_attractant, 
+                           y = collected, 
+                           fill = genus_species)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  theme_bw() +
+  xlab("Total Mosquitoes Collected") +
+  ylab("Type of Trap and Attractant") +
+  labs(caption = "Number of mosquitoes collected across across genus and species for each trap and attractant.") +
+  theme(plot.caption = element_text(face = "italic", 
+                                    size = 10, 
+                                    hjust = 0)) +
+  coord_flip() +
+  scale_fill_discrete(name = "Genus and Species")
+```
+
+This plot shows the total number of mosquitoes caught for each trap and attractant combination based on their genus and species. As we can see, there were more culex_pipiens caught and the gravid trap: hay or grass infusion had the most caught. I think there are also some confounding variables with this so for future analyses I should consider looking more into that or cutting down on the amount of groups I'm comparing.
+
+# Part II.
+
+### Question:
+
+Is the number of total mosquitoes caught different between genus and species?
+
+Predictor: genus and species (categorical)
+
+Response: number of mosquitoes caught (discrete)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of caught) is associated with genus_species
+
+### Hypotheses:
+
+Null hypothesis: there is no association between the total number of mosquitoes caught based on genus_species.
+
+Alternative hypothesis: there is an association between the total number of mosquitoes caught based on genus_species. According to the DC Department of Health, the *Culex pipiens* is the most common mosquito in the DC area. The *Aedes albopictus and Aedes aegypti* are also commonly found mosquitoes in the DC area.
+
+### Calculate total mosquitoes caught across genus_species:
+
+```{r}
+total_collected <- mosquito |>
+  group_by(genus_species) |> 
+  summarise(total_caught = sum(total_collected))
+```
+
+This creates a data frame for the total number of mosquitoes caught based on genus and species. Just looking at this, there are 22509 *Culex pipiens* caught which is a lot more than any other genus_species.
+
+### Plot the data:
+
+```{r}
+ggplot(total_collected, aes(x = genus_species, 
+                            y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw()
+```
+
+Similar to the previous analysis, *Culex pipiens* has much larger amount of total mosquitoes caught so I believe there will be an association between total caught with genus_species. *Culex pipiens*, often called the House Mosquito, are one of the most common types of mosquito on the East coast and can carry West Nile virus.
+
+### Matrix for total mosquitoes caught based on genus_species:
+
+```{r}
+# this is a matrix for the total number of mosquitoes caught for each genus and species
+second_mat <- xtabs(total_caught ~ genus_species, 
+                   data = total_collected)
+second_mat
+```
+
+This is the same output as the previous data frame
+
+### Chi-sq test:
+
+```{r}
+chisq.test(second_mat)
+```
+
+Based on the chi-sq test, we can reject the null hypothesis that there is no association between the genus and species of mosquitoes and the total number of mosquitoes caught (X-sq = 183583, df = 11, p = 2.2x10-16). The X-sq values is extremely large so the probability that this arose by chance is very low. Like we saw in the initial data frame, there were 22509 *Culex pipiens* caught which is probably why the X-sq value is so large. We will dive deeper into this in the following.
+
+### New data frame with *C. pipiens* and every other genus species combined:
+
+```{r}
+total_collected
+# add all the mosquitoes caught for each genus species except culex pipiens
+808 + 3637 + 589 + 1333 +64 + 5 + 28 + 160 + 125 + 12 +176
+
+# add 6937 as a new row of every genus species combined
+new_collected <- total_collected |>
+  add_row(genus_species = "Other", total_caught = 6937)
+
+new_collected <- new_collected |>
+  filter(genus_species == "Culex_pipiens" | genus_species == "Other") 
+```
+
+This creates a new data frame called new_collected, that only contains the total number of *Culex pipiens* caught and every other mosquito type caught combined together in an observation called "Other". From this, we'll be conducting a post-hoc comparing *Culex pipiens* to every other mosquito combined. I predict that *Culex pipiens* will still have significantly more mosquitoes caught because of the extent of how much there are.
+
+### Matrix of *C. pipiens* and other mosquitoes caught:
+
+```{r}
+condensed_mat <- xtabs(total_caught ~ genus_species, 
+                   data = new_collected)
+```
+
+This is a chi-sq test matrix containing *Culex pipiens* and "Other" for genus_speices and the total collected for each.
+
+### Chi-sq test of *C. Pipiens* and other genus species combined:
+
+```{r}
+chisq.test(condensed_mat)
+```
+
+Even with combing every other mosquito type and comparing it to *Culex pipiens*, there are still significantly more *Culex pipiens* than every other mosquito here (X-sq = 8235, p = 2.2x10\^-16). *Culex pipiens* are extremely common in the DC area and the east coast because of their adaptability and long life span. *Culex pipiens* survive the winter by storing fat in their body and burrowing away and safer warm places such as underground, in trees, or buildings.
+
+### Final plot:
+
+```{r}
+ggplot(total_collected, aes(x = genus_species, 
+                           y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  theme_bw() +
+  xlab("Genus and Species of Mosquito") +
+  ylab("Total Number of Mosquitoes Collected") +
+  labs(caption = "Number of mosquitoes collected across across genus and species.") +
+  theme(plot.caption = element_text(face = "italic", 
+                                    size = 10, 
+                                    hjust = 0)) +
+  coord_flip() 
+```
+
+From this plot, like in the previous one, *Culex pipiens* stands out as having much more mosquitoes caught. Clearly, this mosquito is very common in Washington DC which is problematic because they carry West Nile virus, however, they don't carry Zika.
+
+# Part III.
+
+### Question:
+
+Is the number of total mosquitoes caught different between genus and species without *Culex pipiens*?
+
+Predictor: genus and species (categorical)
+
+Response: number of mosquitoes caught (discrete)
+
+Model: chi-sq test of independence (contingency table) b/c we're looking at how the count data (number of caught) is associated with genus_species
+
+### Hypotheses:
+
+Null hypothesis: there is no association between the total number of mosquitoes caught based on genus_species.
+
+Alternative hypothesis: there is an association between the total number of mosquitoes caught based on genus_species. The DC Department of Health, states that the *Aedes albopictus and Aedes aegypti* are the next most commonly found mosquitoes in the DC area behind the *Culex pipiens*.
+
+### Data frame without *C. pipiens:*
+
+```{r}
+no_C_df <- total_collected |>
+  filter(genus_species != "Culex_pipiens")
+no_C_df
+```
+
+### Plot of mosquitoes caught excluding *C. pipiens:*
+
+```{r}
+ggplot(no_C_df, aes(x = genus_species, 
+                            y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw()
+```
+
+From this plot, I predict that there will still be a significant difference in mosquito abundance because *Aedes albopictus* are the second most common mosquito in Washington DC. There were over 3500 *Aedes albopictus* caught which is over 2000 more mosquitoes than the next most common mosquito, *Aedes sp.* *Aedes albopictus* are commonly found all around the world and have spread rapidly with the trade of different goods that the mosquito lives in.
+
+### Make matrix of all mosquitoes caught except *C. pipiens*
+
+```{r}
+no_C_mat <- xtabs(total_caught ~ genus_species, 
+                   data = no_C_df)
+```
+
+### Chi-sq test of all mosquitoes caught except *C. pipiens*
+
+```{r}
+chisq.test(no_C_mat)
+```
+
+Based on the chi-sq test, we can reject the null hypothesis that there is no association between the genus and species of mosquitoes and the total number of mosquitoes caught (X-sq = 18564, df = 10, p = 2.2x10-16). The X-sq values is large so the probability that this arose by chance is very low. Even without *Culex pipiens*, there is still a significant difference between genus species caught. *Aedes albopictus* are quite common in the DC area and other areas around the world because of the international trade industry. *Aedes albopictus* are native to Asia but have spread to almost every continent in the world.
+
+### Final plot:
+
+```{r}
+ggplot(no_C_df, aes(x = genus_species, 
+                            y = total_caught)) +
+  geom_bar(stat = 'identity', 
+           position = 'dodge') +
+  coord_flip() +
+  theme_bw() + 
+  xlab("Genus and Species of Mosquito") +
+  ylab("Total Number of Mosquitoes Collected") +
+  labs(caption = "Number of mosquitoes collected across across genus and species, excluding *Culex Pipiens*.") +
+  theme(plot.caption = element_text(face = "italic", 
+                                    size = 10, 
+                                    hjust = 0))
+```
+
+This plot shows the abundance of mosquito types, excluding *Culex pipiens*, and we can see that *Aedes albopictus* has taken its place as the most abundant mosquito in the DC area. The mosquito type is common all around the world and mostly inhabits human made products like tires. The mosquito originates in Asia and spread due to the import of Asian made tires. I was surprised to see *Aedes sp.* behind *Aedes albopictus* because according to the DC Department of Health, the *Aedes aegypti* is one of the most common mosquito species behind *Culex pipiens.*
+
+# Challenges
+
+This project definitely tested what we have learned this semester and introduced new topics. The fact that this data frame is mostly count data made using other statistical analyses difficult. One of the most challenging aspects was figuring out where to start. With this independent project, it's challenging to tackle it entirely on our own because students have been hard-wired to answer questions and not come up with our own questions. This type of project forces us to think with a different lense that is more applicable to being an employee at a company tasked with analyzing data. The employee isn't always step-by-step guide of what to do, they must come up with their own inferences which is why these type of exercises are good for that. Other than that broad challenge, there were many minor ones such as figuring out how to do post-hoc tests for Ch-sq and the best way to visualize the data with plots. I utilized the textbook for most of these questions as well as Stack Overflow, Stack Exchange, the Help function, and Dr. Barthelmess. 
+
+# References
+
+https://www.epa.gov/sites/default/files/2021-01/documents/wetlands_west_nile_virus.pdf 
+
+https://www.ecdc.europa.eu/en/disease-vectors/facts/mosquito-factsheets/aedes-albopictus
+
+https://pmc.ncbi.nlm.nih.gov/articles/PMC2212601/#:~:text=efficient%20disease%20vector.-,Ae.,and%20Reiter%20and%20Sprenger%201987). 
+
+https://www.cdc.gov/mosquitoes/php/toolkit/mosquito-surveillance-traps.html
+
+https://www.vdci.net/blog/mosquito-surveillance-traps-are-they-all-the-same/
+
+
+
+
+
+
+

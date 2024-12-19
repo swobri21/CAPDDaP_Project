@@ -1,0 +1,61 @@
+---
+title: "Vegan Practice"
+author: "S. O'Brien"
+format: html
+---
+
+
+```{r}
+rm(list=ls())
+library(tidyverse)
+library(here)
+library(ggfortify)
+library(multcomp)
+library(vegan)
+```
+
+long summary data frame
+```{r}
+mosquito_vegan <- mosquito |>
+  group_by(trap_id, genus_species) |>
+  summarise(Total_trapped = sum(total_collected, na.rm = T))
+```
+
+
+```{r}
+mosquito_wide <- mosquito_vegan |> 
+  pivot_wider(names_from = genus_species, 
+              values_from = Total_trapped)
+```
+
+change na to 0
+```{r}
+mosquito_wide <- mosquito_wide |> mutate(
+  across(where(is.numeric), ~replace_na(.,0)))
+```
+
+save wide df
+```{r}
+write.csv(mosquito_wide, here("Data/mosquito_wide.csv"), row.names = F)
+```
+
+calculate species_richness
+```{r}
+species_richness <- specnumber(mosquito_wide[,2:13])
+
+species_richness
+```
+
+calculate shannon's index
+```{r}
+shannon_index <- diversity(mosquito_wide[,2:13], index = "shannon")
+```
+
+put shannons data in data frame
+```{r}
+Results <- mosquito_wide[,1]
+
+Results$shannon<-diversity(mosquito_wide[,2:13], index = "shannon")
+```
+
+

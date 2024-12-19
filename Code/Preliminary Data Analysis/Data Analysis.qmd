@@ -32,9 +32,9 @@ This all looks good coming off of my data exploration but it doesn't look like t
 ### Convert trap_type to fct:
 
 ```{r}
-mosquito$trap_type <- 
-  as.factor(mosquito$trap_type)
-levels(mosquito$trap_type)
+mosquito$trap_attractant <- 
+  as.factor(mosquito$trap_attractant)
+levels(mosquito$trap_attractant)
 ```
 
 ### Convert attractant_used to fct:
@@ -226,3 +226,10 @@ ggplot(total_collected, aes(x = genus_species,
 ```
 
 From this plot, like in the previous one, culex pipiens stands out as having much more mosquitoes caught. Clearly, this mosquito is very common in Washington DC which is problematic because they carry West Nile virus, however, they don't carry Zika.
+
+```{r}
+mosqutio_vegan <- mosquito |>
+  group_by(trap_id, genus_species) |>
+  summarise(Tota_trapped = sum(total_collected, na.rm = T))
+```
+

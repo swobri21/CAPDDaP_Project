@@ -1,0 +1,49 @@
+---
+title: "preliminary analysis feedback"
+format: html
+editor: visual
+---
+
+## Preliminary Analysis Feedback
+
+### General
+
+-   Please have a separate .qmd file for each of your separate statistical analyses, as indicated in the assignment, and name each one something related to the analysis each includes.
+
+-   Line 30 - when you make something a factor, date, etc. and then save the data as .csv, those changes are not saved, so it is correct that you have to reassign them.
+
+-   I'd like to see you push yourself to do \> 1 type of analysis with these data. Thus far, you are conducting 2 chi-square tests.
+
+A few ideas: 1. You could use the `vegan` package to determine the Simpson's or Shannon index of mosquito diversity at each sampling location and then use the index that you calculate as a response variable for your question trap type and attractant. Then you'd have a 2-way ANOVA as one of your analyses.
+
+2.  You could break trap_set into categories based on the date and see if mosquito abundance seems to vary with season.
+
+-   Please bring back biology. For both of your questions, I'd like you to make a biologically-based prediction for your alternative hypothesis and then also when you make your results statement, I'd like to see you address whether the outcome of the test makes good biological sense.
+
+### What is the effect of trap type and attractant on total mosquiteos collected?
+
+-   I'm going to want, for each analysis, a null and alternative hypotheses, and for the alternative hypotheses, you're going to need some biological justification in your statement.
+
+-   Line 66 - the letter A corresponds to the B at line 58 which is confusing.
+
+-   Line 108 - again, I'd like to know a bit of biology. Does this bar plot make sense? What can you learn about culex pipiens that might give a biological reason for this apparent difference?
+
+-   Line 116 - when you look at your matrix, you see there are a lot of cases with values \< 5. That wreaks havoc on a Chi-square, which is why it gives you a warning when you run the Chi-square test that it might be inaccurate.
+
+The solution is to combine groups so that you don't have any cases with values \< 5. For example, you could put Aedes_j japonicus, Aedes sp., Aedes_triseriatus and Anopheles all together into one group and call it "misc Aedes and Anopheles" or something. You would need to do this sort of thing for all of the cases where you have values \< 5.
+
+Also, because you have \> 2 groups, you are going to need to do post-hoc tests (like the Tukey test we learned with ANOVA) to figure out which of the groups are different from each other. [Here is a link](https://www.biostathandbook.com/chiind.html) about how to do that. Also, Sara and Margaret need to do the same thing, so you may all wish to talk to one another about how to do it.
+
+Once you have done post hoc tests, you should use `annotate()` to add letters to your final plot.
+
+-Line 149 - This is where your second .qmd file should begin.
+
+### Is the total number of mosquitoes caught different between species?
+
+All of your code runs fine. I think you should extend this analysis though. You are absolutely correct that with so many C. pipiens, there is going to be a signficant X2 value. I would suggest that you next do a post-hoc test comparing the C. pipiens to all the other mosquitoes combined.
+
+THEN, do the the analysis again, but remove C pipiens. Basically you would be saying, "all else equal, are there differences in the numbers of non-C. pipiens mosquitoes caught"? - you would set up that chi square after filtering C pipiens and do the post-hoc comparisions among all the species groups.
+
+Happy to chat about this.
+
+IF you drill down and do all these post hoc tests and then also do a 3rd analysis in which you re-run the 2nd analysis without any C pipiens THEN I'm comfortable with you not needing to do a different type of analysis (see my line 15 above).
