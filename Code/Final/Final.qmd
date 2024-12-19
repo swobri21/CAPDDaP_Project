@@ -301,23 +301,16 @@ This plot shows the abundance of mosquito types, excluding *Culex pipiens*, and 
 
 # Challenges
 
-This project definitely tested what we have learned this semester and introduced new topics. The fact that this data frame is mostly count data made using other statistical analyses difficult. One of the most challenging aspects was figuring out where to start. With this independent project, it's challenging to tackle it entirely on our own because students have been hard-wired to answer questions and not come up with our own questions. This type of project forces us to think with a different lense that is more applicable to being an employee at a company tasked with analyzing data. The employee isn't always step-by-step guide of what to do, they must come up with their own inferences which is why these type of exercises are good for that. Other than that broad challenge, there were many minor ones such as figuring out how to do post-hoc tests for Ch-sq and the best way to visualize the data with plots. I utilized the textbook for most of these questions as well as Stack Overflow, Stack Exchange, the Help function, and Dr. Barthelmess. 
+This project definitely tested what we have learned this semester and introduced new topics. The fact that this data frame is mostly count data made using other statistical analyses difficult. One of the most challenging aspects was figuring out where to start. With this independent project, it's challenging to tackle it entirely on our own because students have been hard-wired to answer questions and not come up with our own questions. This type of project forces us to think with a different lense that is more applicable to being an employee at a company tasked with analyzing data. The employee isn't always step-by-step guide of what to do, they must come up with their own inferences which is why these type of exercises are good for that. Other than that broad challenge, there were many minor ones such as figuring out how to do post-hoc tests for Ch-sq and the best way to visualize the data with plots. I utilized the textbook for most of these questions as well as Stack Overflow, Stack Exchange, the Help function, and Dr. Barthelmess.
 
 # References
 
-https://www.epa.gov/sites/default/files/2021-01/documents/wetlands_west_nile_virus.pdf 
+https://www.epa.gov/sites/default/files/2021-01/documents/wetlands_west_nile_virus.pdf
 
 https://www.ecdc.europa.eu/en/disease-vectors/facts/mosquito-factsheets/aedes-albopictus
 
-https://pmc.ncbi.nlm.nih.gov/articles/PMC2212601/#:~:text=efficient%20disease%20vector.-,Ae.,and%20Reiter%20and%20Sprenger%201987). 
+https://pmc.ncbi.nlm.nih.gov/articles/PMC2212601/#:\~:text=efficient%20disease%20vector.-,Ae.,and%20Reiter%20and%20Sprenger%201987).
 
 https://www.cdc.gov/mosquitoes/php/toolkit/mosquito-surveillance-traps.html
 
 https://www.vdci.net/blog/mosquito-surveillance-traps-are-they-all-the-same/
-
-
-
-
-
-
-
